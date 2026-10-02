@@ -24,34 +24,58 @@ no accounts, no uploads to anyone's cloud, no subscriptions and no paid APIs.
 - **Clip gallery.** Preview, download or delete every clip you've made.
 - **Clear errors.** If a download or render fails you see the real reason, not a generic error.
 
-## Requirements
+## Install and run (Windows): 3 steps, no typing
 
-| Tool | Why | Install (Windows) | Install (macOS / Linux) |
-|---|---|---|---|
-| [uv](https://docs.astral.sh/uv/) | runs the app and installs Python + packages automatically | `winget install astral-sh.uv` | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
-| [ffmpeg](https://ffmpeg.org/) (incl. `ffprobe`) | cutting, cropping, captions | `winget install Gyan.FFmpeg` | `brew install ffmpeg` / `sudo apt install ffmpeg` |
+1. **Download.** On this page click the green **Code** button → **Download ZIP**.
+   *(Or, if you use git: `git clone https://github.com/Eshaan0110/shortsforge.git`)*
+2. **Unzip.** Right-click the downloaded ZIP → **Extract All** → **Extract**.
+3. **Start.** Open the extracted `shortsforge` folder and double-click **`start.bat`**.
 
-You do **not** need to install Python, yt-dlp or anything else. `uv` sets up Python 3.12 and every
-package from the lockfile on first run.
+That's it. `start.bat` checks everything it needs. If something is missing it asks
+**"Install … now? [Y/N]"**: press **Y**, and it installs it for you:
 
-After installing these, **open a new terminal** so they are on your `PATH`.
+| It may install | What it's for |
+|---|---|
+| **uv** | runs the app and sets up Python automatically (you do *not* need to install Python) |
+| **ffmpeg** | cuts and renders the videos |
 
-## Quick start
+Then your browser opens **http://localhost:8765** by itself.
+
+> **"Windows protected your PC"?** Windows shows this for scripts downloaded from the internet.
+> Click **More info** → **Run anyway**.
+
+> **Keep the black window open** while you use the app. Closing it stops shortsforge.
+
+### What to expect the first time
+
+| When | What happens | How long |
+|---|---|---|
+| First double-click | Installs uv/ffmpeg if needed, then downloads Python and the app's packages | 2–5 minutes |
+| First time you use captions or transcription | Downloads a speech model (~145 MB) once | 1–3 minutes |
+| Every time after that | Starts in a few seconds | — |
+
+### Every time after
+
+Double-click **`start.bat`**, use the app in your browser, and close the black window when you're done.
+Double-clicking it while the app is already running just opens it in your browser again.
+
+## Install and run (macOS / Linux)
 
 ```bash
 git clone https://github.com/Eshaan0110/shortsforge.git
 cd shortsforge
+./start.sh
 ```
 
-**Windows:** double-click **`start.bat`**.
-**macOS / Linux:** run `./start.sh`.
+Like `start.bat`, it offers to install **uv** and **ffmpeg** if they're missing (ffmpeg through
+Homebrew, apt, dnf, pacman or zypper; on macOS without Homebrew, install it from [brew.sh](https://brew.sh) first).
+Your browser opens **http://localhost:8765**. Keep the terminal open; press **Ctrl+C** to stop.
 
-Your browser opens **http://localhost:8765**. Keep the terminal window open while you use the app;
-closing it (or pressing Ctrl+C) stops it.
+## Uninstall
 
-> The first launch takes a few minutes to download packages. The first time you transcribe, a ~145 MB
-> speech model is downloaded once into `cache/models/`. After that, everything works offline except
-> downloading new YouTube videos.
+Delete the `shortsforge` folder. That removes the app, downloaded videos, clips and the speech model.
+If `start.bat` installed them and you don't need them for anything else, you can also remove the tools:
+`winget uninstall astral-sh.uv` and `winget uninstall Gyan.FFmpeg`.
 
 ## How to use it
 
@@ -99,6 +123,8 @@ Set these as environment variables before running `start.bat` / `start.sh`:
 | `PORT` | `8765` | Port the app listens on. |
 | `HOST` | `127.0.0.1` | Interface to bind. Keep the default unless you understand the risk: the app has no login, so `0.0.0.0` lets anyone on your network use it. |
 | `SHORTSFORGE_WHISPER_MODEL` | `base` | Speech model: `tiny` (fastest), `base`, `small`, `medium`, `large-v3` (most accurate, slowest). |
+| `SHORTSFORGE_YES` | not set | Set to `1` to answer **yes** to every install question automatically. |
+| `SHORTSFORGE_NO_BROWSER` | not set | Set to `1` to stop the launcher from opening the browser. |
 
 Windows example: `set PORT=9000` then `start.bat`. macOS/Linux: `PORT=9000 ./start.sh`.
 
@@ -120,9 +146,10 @@ uv sync
 
 | Problem | Fix |
 |---|---|
-| Page shows "Backend: unreachable" or "page opened as a file" | Open **http://localhost:8765** in the browser. Don't open `frontend/index.html` directly, and make sure the start window is still running. |
-| `address already in use` | Another copy is already running, or something else uses port 8765. Close it or set a different `PORT`. |
-| `uv` / `ffmpeg` not found right after installing | Open a **new** terminal window so the updated `PATH` is picked up. |
+| Page shows "Backend: unreachable" or "page opened as a file" | The black start window was closed. Double-click `start.bat` again. Always use **http://localhost:8765**, not the `frontend/index.html` file. |
+| "Windows protected your PC" | Click **More info** → **Run anyway**. |
+| The automatic install of uv or ffmpeg failed | Install it yourself (`winget install astral-sh.uv` / `winget install Gyan.FFmpeg`, or from [docs.astral.sh/uv](https://docs.astral.sh/uv/) and [gyan.dev/ffmpeg](https://www.gyan.dev/ffmpeg/builds/)), then double-click `start.bat` again. |
+| `address already in use` | Another program uses port 8765. Close it, or run `set PORT=9000` and then `start.bat`. |
 | Download fails with "Sign in to confirm you're not a bot" or missing formats | Update yt-dlp (see *Updating*). Installing a JavaScript runtime also helps: `winget install DenoLand.Deno`. |
 | Transcription stuck on "downloading Whisper model" | The model download resumes where it left off. Restart the app if it stalls. |
 | Page looks old after updating | Hard refresh: **Ctrl + Shift + R**. |
@@ -179,8 +206,10 @@ Tool failures return `{"detail": {"error": "...", "stderr": "..."}}`.
 ```
 backend/     FastAPI app, downloader, transcriber, clipper
 frontend/    index.html, style.css, app.js
-start.bat    Windows launcher
+start.bat    Windows launcher (installs missing tools, then starts the app)
 start.sh     macOS / Linux launcher
+scripts/     helper used by start.bat to fetch a portable ffmpeg if winget isn't available
+.tools/      portable tools downloaded by start.bat                 (created only if needed)
 cache/       downloaded videos, transcripts, speech model   (created at runtime)
 output/      rendered clips                                 (created at runtime)
 ```
