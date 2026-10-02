@@ -3,6 +3,7 @@ name = "shortsforge"
 version = "1.0.0"
 description = "Local, free tool that turns YouTube videos into vertical Shorts / Reels / TikToks."
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.142.2",

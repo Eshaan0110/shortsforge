@@ -199,3 +199,7 @@ For development with auto-reload: `uv run uvicorn backend.main:app --reload --po
 
 shortsforge downloads videos with yt-dlp. Only clip content you own or have permission to use, and
 respect YouTube's Terms of Service and the copyright of the original creators.
+
+## License
+
+[MIT](LICENSE): free to use, modify and share, including commercially. Keep the copyright notice.
