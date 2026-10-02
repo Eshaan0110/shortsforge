@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>shortsforge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <div class="brand">
+        <a class="wordmark" href="/">
+          shortsforge
+          <svg class="squiggle" viewBox="0 0 300 16" preserveAspectRatio="none" aria-hidden="true">
+            <path class="squiggle-shadow" d="M3 9 C 23 1, 39 1, 59 8 S 99 15, 119 7 S 159 0, 179 8 S 219 15, 239 7 S 279 1, 297 8"/>
+            <path class="squiggle-line" d="M3 9 C 23 1, 39 1, 59 8 S 99 15, 119 7 S 159 0, 179 8 S 219 15, 239 7 S 279 1, 297 8"/>
+          </svg>
+        </a>
+        <span class="sticker sticker-version">v1.0 // LOCAL</span>
+      </div>
+      <span class="health-tag">API <span id="health">checking…</span></span>
+    </header>
+
+    <main>
+      <!-- Fetch -->
+      <section id="fetch-card" class="card fetch-card">
+        <div class="hazard" aria-hidden="true"></div>
+        <h2 class="display">DROP A LINK</h2>
+        <form id="fetch-form" class="fetch-form">
+          <div class="field grow">
+            <label class="label" for="url">YouTube URL</label>
+            <input id="url" class="input mono" type="url" placeholder="https://www.youtube.com/watch?v=…" required autocomplete="off" spellcheck="false">
+          </div>
+          <button id="fetch-btn" class="btn btn-primary btn-xl" type="submit">FETCH</button>
+        </form>
+        <div id="fetch-status" class="status"></div>
+      </section>
+
+      <div id="workspace" class="workspace" hidden>
+        <!-- Player + transcript -->
+        <section class="card">
+          <div class="video-head">
+            <h2 id="video-title" class="video-title"></h2>
+            <span id="video-duration" class="sticker" hidden></span>
+          </div>
+          <div class="split">
+            <div class="player-col">
+            <div class="player-frame" id="player-frame">
+              <video id="player" controls preload="metadata"></video>
+              <div id="crop-guide" class="crop-guide" hidden>
+                <div id="crop-box" class="crop-box">
+                  <button type="button" id="crop-handle" class="crop-handle" aria-label="Drag to move the 9:16 crop. Arrow keys nudge it.">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5"/><path d="m16 7 5 5-5 5"/><path d="M3 12h18"/></svg>
+                    9:16
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Keyframe timeline (CUSTOM crop mode) -->
+            <div id="kf-panel" class="kf-panel" hidden>
+              <div class="kf-head">
+                <span class="label">Keyframe timeline</span>
+                <span id="kf-range" class="kf-range mono"></span>
+              </div>
+              <div class="kf-row">
+                <div id="kf-track" class="kf-track" title="Click to move the playhead">
+                  <div id="kf-lane" class="kf-lane">
+                    <div id="kf-playhead" class="kf-playhead" hidden></div>
+                  </div>
+                </div>
+                <button id="kf-add" class="icon-btn kf-add" type="button" title="ADD KEYFRAME AT CURRENT TIME" aria-label="Add keyframe at current time">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+              </div>
+              <div id="kf-editor" class="kf-editor">
+                <span id="kf-selected" class="sticker"></span>
+                <div class="segmented segmented-sm" role="group" aria-label="Motion from this keyframe to the next">
+                  <button type="button" data-ease="smooth" aria-pressed="true">SMOOTH</button>
+                  <button type="button" data-ease="snap" aria-pressed="false">SNAP</button>
+                </div>
+                <label class="kf-zoom">
+                  <span class="label">Zoom</span>
+                  <input id="kf-zoom" class="range" type="range" min="100" max="300" step="5" value="100" aria-label="Keyframe zoom">
+                  <span id="kf-zoom-value" class="mono">1.0×</span>
+                </label>
+                <button id="kf-delete" class="btn btn-secondary btn-sm" type="button">DELETE</button>
+              </div>
+              <p id="kf-empty" class="hint" hidden>No keyframe at the playhead — drag the 9:16 box to add one here, or click a dot.</p>
+              <p class="hint">Click a dot to edit · drag a dot to retime · shift/right-click to delete · ● smooth ■ snap</p>
+            </div>
+            </div>
+            <div class="transcript-panel">
+              <div class="panel-head">
+                <span class="label">Transcript</span>
+                <span id="transcript-status" class="muted"></span>
+              </div>
+              <ol id="transcript" class="transcript"></ol>
+              <button id="transcribe-btn" class="btn btn-secondary btn-sm" type="button">TRANSCRIBE START–END</button>
+              <p class="hint">Only the clip range is transcribed (also happens automatically on Generate with captions). Click a line = set start · Shift + click = set end</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Clip controls -->
+        <section class="card">
+          <div class="card-head">
+            <h2 class="display-sm">MAKE A CLIP</h2>
+            <span id="clip-length" class="sticker"></span>
+          </div>
+
+          <div class="times">
+            <div class="field">
+              <label class="label" for="start">Start</label>
+              <div class="time-row">
+                <input id="start" class="input mono time" placeholder="MM:SS" autocomplete="off" spellcheck="false">
+                <button type="button" class="icon-btn" data-now="start" title="Use the player's current time" aria-label="Set start to the player's current time">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label" for="end">End</label>
+              <div class="time-row">
+                <input id="end" class="input mono time" placeholder="MM:SS" autocomplete="off" spellcheck="false">
+                <button type="button" class="icon-btn" data-now="end" title="Use the player's current time" aria-label="Set end to the player's current time">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="crop-controls">
+            <div class="crop-head">
+              <span class="label">Crop</span>
+              <div class="segmented segmented-sm" role="group" aria-label="Crop mode">
+                <button type="button" data-crop-mode="fixed" aria-pressed="true">FIXED</button>
+                <button type="button" data-crop-mode="custom" aria-pressed="false">CUSTOM · KEYFRAMES</button>
+                <button type="button" data-crop-mode="fit" aria-pressed="false">FIT</button>
+              </div>
+              <span id="crop-value" class="sticker">CENTER</span>
+            </div>
+            <div id="crop-fixed" class="crop-fixed">
+              <div class="crop-row">
+                <div class="segmented" role="group" aria-label="Crop presets">
+                  <button type="button" data-crop="0" aria-pressed="false">LEFT</button>
+                  <button type="button" data-crop="0.5" aria-pressed="true">CENTER</button>
+                  <button type="button" data-crop="1" aria-pressed="false">RIGHT</button>
+                </div>
+                <input id="crop-x" class="range" type="range" min="0" max="100" step="1" value="50" aria-label="Crop position, left to right">
+              </div>
+              <p id="crop-hint" class="hint">Drag the 9:16 box on the player, or use the presets / slider.</p>
+            </div>
+            <div id="crop-fit" class="crop-fit" hidden>
+              <div class="crop-row">
+                <div class="segmented" role="group" aria-label="Fill around the video">
+                  <button type="button" data-pad="blur" aria-pressed="true">BLUR</button>
+                  <button type="button" data-pad="black" aria-pressed="false">BLACK</button>
+                  <button type="button" data-pad="color" aria-pressed="false">COLOR</button>
+                </div>
+                <label class="color-pick">
+                  <input id="pad-color" type="color" value="#7c3aed" aria-label="Padding color">
+                  <span id="pad-color-value" class="mono">#7C3AED</span>
+                </label>
+              </div>
+              <p class="hint">The whole frame is kept and fitted inside 9:16 — nothing is cropped off. The space above and below is filled with your choice.</p>
+            </div>
+            <p id="crop-custom-hint" class="hint" hidden>Set keyframes on the timeline under the player — the crop slides between them. Scrub the video to preview the motion.</p>
+          </div>
+
+          <div class="toggles">
+            <label class="check">
+              <input type="checkbox" id="captions">
+              <span>Burn captions into clip</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" id="crop-guide-toggle" checked>
+              <span>Show crop guide</span>
+            </label>
+          </div>
+
+          <button id="clip-btn" class="btn btn-primary btn-lg btn-block" type="button">GENERATE CLIP →</button>
+          <div id="clip-status" class="status"></div>
+
+          <details id="batch" class="batch">
+            <summary>
+              <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+              BATCH MODE <span class="muted">— many clips at once</span>
+            </summary>
+            <div class="batch-body">
+              <p class="hint">One range per line: <code>0:10-0:25</code> <code>1:02 1:30</code> <code>75, 90</code> — uses the crop + captions settings above.</p>
+              <textarea id="batch-ranges" class="input mono" rows="5" placeholder="0:10-0:25&#10;1:02-1:30" spellcheck="false"></textarea>
+              <div class="batch-actions">
+                <button id="batch-btn" class="btn btn-secondary" type="button">GENERATE ALL</button>
+                <progress id="batch-progress" value="0" max="1" hidden></progress>
+                <span id="batch-label" class="mono"></span>
+              </div>
+              <div id="batch-status" class="status"></div>
+              <ul id="batch-results" class="batch-results"></ul>
+            </div>
+          </details>
+        </section>
+      </div>
+
+      <!-- Clips -->
+      <section class="card">
+        <div class="card-head">
+          <h2 class="display-sm">YOUR CLIPS</h2>
+          <button id="refresh-clips" class="btn btn-secondary btn-sm" type="button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66"/><path d="M20 4v7h-7"/></svg>
+            REFRESH
+          </button>
+        </div>
+        <ul id="clips" class="clips"></ul>
+        <div id="clips-empty" class="empty" hidden>
+          <svg width="72" height="110" viewBox="0 0 72 110" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M38 104 C 30 86, 44 70, 36 52 C 30 40, 38 28, 36 12"/>
+            <path d="M20 28 C 27 22, 31 16, 36 10 C 41 17, 46 22, 54 27"/>
+          </svg>
+          <p>NO CLIPS YET. GO MAKE SOMETHING.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
