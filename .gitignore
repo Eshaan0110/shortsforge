@@ -8,6 +8,9 @@ cache/
 output/
 *.part.mp4
 
+# Portable tools downloaded by start.bat (e.g. ffmpeg)
+.tools/
+
 # Local tooling / OS / editor files
 .env
 .idea/
